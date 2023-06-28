@@ -88,6 +88,8 @@ in with passthru; stdenv.mkDerivation rec {
       inherit (sqlite) out dev;
     })
   ] ++ lib.optionals isPy3k [
+    # add missing LDCXXSHARED to sysconfig.get_config_vars() to prevent type errors when compiling eg. Pillow
+    ./sysconfig-config-vars.patch
     # fix sitepackages detection adding prefix twice
     ./site-prefix.patch
     # fix paths to our site-packages and similar
