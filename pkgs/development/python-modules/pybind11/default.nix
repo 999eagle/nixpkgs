@@ -12,17 +12,19 @@
 , pytestCheckHook
 , libxcrypt
 , makeSetupHook
-}: let
+}:
+let
   setupHook = makeSetupHook {
     name = "pybind11-setup-hook";
     substitutions = {
       out = placeholder "out";
       pythonInterpreter = python.pythonForBuild.interpreter;
-      pythonIncludeDir = "${python}/include/python${python.pythonVersion}";
+      pythonIncludeDir = "${python}/include/${python.libPrefix}";
       pythonSitePackages = "${python}/${python.sitePackages}";
     };
   } ./setup-hook.sh;
-in buildPythonPackage rec {
+in
+  buildPythonPackage rec {
   pname = "pybind11";
   version = "2.10.4";
 
