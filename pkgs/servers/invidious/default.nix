@@ -1,18 +1,29 @@
-{ lib, stdenv, crystal, fetchFromGitea, librsvg, pkg-config, libxml2, openssl, shards, sqlite, videojs, nixosTests }:
-let
+{ lib
+, callPackage
+, crystal
+, fetchFromGitea
+, librsvg
+, pkg-config
+, libxml2
+, openssl
+, shards
+, sqlite
+, nixosTests
+
   # All versions, revisions, and checksums are stored in ./versions.json.
   # The update process is the following:
-  #   * pick the latest commit
-  #   * update .invidious.rev, .invidious.version, and .invidious.hash
+  #   * pick the latest tag
+  #   * update .invidious.version, .invidious.version_string, and .invidious.hash
   #   * prefetch the videojs dependencies with scripts/fetch-player-dependencies.cr
   #     and update .videojs.hash (they are normally fetched during build
   #     but nix's sandboxing does not allow that)
   #   * if shard.lock changed
   #     * recreate shards.nix by running crystal2nix
-  #     * update lsquic and boringssl if necessarry, lsquic.cr depends on
-  #       the same version of lsquic and lsquic requires the boringssl
-  #       commit mentioned in its README
-  versions = lib.importJSON ./versions.json;
+, versions ? lib.importJSON ./versions.json
+}:
+let
+  # normally video.js is downloaded at build time
+  videojs = callPackage ./videojs.nix { inherit versions; };
 in
 crystal.buildCrystalPackage rec {
   pname = "invidious";
@@ -23,7 +34,7 @@ crystal.buildCrystalPackage rec {
     owner = "iv-org";
     repo = pname;
     fetchSubmodules = true;
-    rev = "v${version}";
+    rev = if versions.invidious ? rev then versions.invidious.rev else "v${version}";
     inherit (versions.invidious) hash;
   };
 
