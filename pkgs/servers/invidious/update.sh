@@ -44,7 +44,11 @@ if [ "$new_version" = "$old_version" ]; then
     exit
 fi
 
+commit="$(git -C "$git_dir" rev-list "$new_tag" --max-count=1 --abbrev-commit)"
+date="$(git -C "$git_dir" log -1 --format=%cd --date=format:%Y.%m.%d)"
+json_set '.invidious.version_string' "$date-$commit"
 json_set '.invidious.version' "$new_version"
+
 new_hash=$(nix-prefetch -I 'nixpkgs=../../..' "$pkg")
 json_set '.invidious.hash' "$new_hash"
 

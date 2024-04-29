@@ -37,6 +37,10 @@ crystal.buildCrystalPackage rec {
       # This always uses the latest commit which invalidates the cache even if
       # the assets were not changed
       assetCommitTemplate = ''{{ "#{`git rev-list HEAD --max-count=1 --abbrev-commit -- assets`.strip}" }}'';
+
+      versionString = lib.splitString "-" versions.invidious.version_string;
+      date = builtins.elemAt versionString 0;
+      commit = builtins.elemAt versionString 1;
     in
     ''
       for d in ${videojs}/*; do ln -s "$d" assets/videojs; done
@@ -45,9 +49,9 @@ crystal.buildCrystalPackage rec {
       # build-time
       substituteInPlace src/invidious.cr \
           --replace-fail ${lib.escapeShellArg branchTemplate} '"master"' \
-          --replace-fail ${lib.escapeShellArg commitTemplate} '"${lib.substring 0 7 versions.invidious.rev}"' \
-          --replace-fail ${lib.escapeShellArg versionTemplate} '"${lib.concatStringsSep "." (lib.drop 2 (lib.splitString "-" version))}"' \
-          --replace-fail ${lib.escapeShellArg assetCommitTemplate} '"${lib.substring 0 7 versions.invidious.rev}"'
+          --replace-fail ${lib.escapeShellArg commitTemplate} '"${commit}"' \
+          --replace-fail ${lib.escapeShellArg versionTemplate} '"${date}"' \
+          --replace-fail ${lib.escapeShellArg assetCommitTemplate} '"${commit}"'
 
       # Patch the assets and locales paths to be absolute
       substituteInPlace src/invidious.cr \
