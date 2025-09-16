@@ -130,6 +130,23 @@ in
             authProtocols = [ "SAE" ];
           };
         };
+
+        extraConfigFiles = [
+          (pkgs.writeText "test1.conf" ''
+            network={
+              ssid="test1"
+              key_mgmt=WPA-PSK
+              psk="password1"
+            }
+          '')
+          (pkgs.writeText "test2.conf" ''
+            network={
+              ssid="test2"
+              key_mgmt=WPA-PSK
+              psk="password2"
+            }
+          '')
+        ];
       };
     };
 
@@ -147,6 +164,10 @@ in
       with subtest("WPA2 fallbacks have been generated"):
           assert int(machine.succeed(f"grep -c sae-only {config_file}")) == 1
           assert int(machine.succeed(f"grep -c mixed-wpa {config_file}")) == 2
+
+      with subtest("Extra config files have been loaded"):
+          machine.wait_until_succeeds("wpa_cli -i wlan0 list_networks | grep -q test1")
+          machine.succeed("wpa_cli -i wlan0 list_networks | grep -q test2")
 
       # save file for manual inspection
       machine.copy_from_vm(config_file)
